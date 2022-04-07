@@ -1,1 +1,72 @@
-#ANS 198 
+#ANS 198 Lecture #4
+#Learning ggplot2
+#Plot dog weight against the height
+
+plot(dogs$height,dogs$weight)
+
+#ggplot2 makes it easier to have different colors and change axis titles
+
+#Data Visualitzation 
+#Install packages
+install.packages("ggplot2")
+
+#Load package (every time you start R)
+library("ggplot2")
+
+#Grammer of Graphics -- We must layer our ggplot
+#Layer 1: Enter the Data
+ggplot(data=dogs)
+
+#Layer #2: GEOMetry -- We need shapes to represent the data
+#Geom_point will mean that we have a data point where needed (basically just a dot)
+ggplot(data=dogs) + geom_point()
+
+#Layer #3: AESthetic -- "wires" or "lines" between geometry and data (connects them)
+ggplot(data=dogs) + geom_point(aes(x = datadog, y = popularity))
+
+#Add another geom to add breed names to the plot
+ggplot(data=dogs, aes(x = datadog, y= popularity)) +
+  geom_point() +
+  geom_text(aes(label = breed))
+
+#Add another geom to add breed names to the plot
+ggplot(dogs, aes(x = datadog, y = popularity)) +
+  geom_point() +
+  geom_text(aes(label = breed)
+
+#Add colors for each group (reference final code)
+ggplot(dogs, aes(x = datadog, y = popularity, color = Group)) +
+  geom_point() +
+  geom_text(aes(label = breed)
+
+#Add color to points (add color to text in a similar way)
+ggplot(dogs, aes(x = datadog, y = popularity, color = Group)) +
+  geom_point(aes(color = Group)) +
+  geom_text(aes(label = breed)
+
+#Adjust the text, so it's not on top of points. You can modify text alignment 
+#with vjust and hjust aesthetics. 
+#Possible characters are "left", "middle", "right", "bottom", "center", "top"
+
+#Layer 5: Add Labels (labs)
+ggplot(dogs, aes(x = datadog, y = popularity, color = Groups)) +
+  geom_point() +
+  geom_text(aes(label = breed), hjust = "left", vjust = "top") +
+  labs(title = "Best in Show", x = "Computed DataDog Score", y = "AKC Popularity Ranking")
+
+#This will allow you to capitalize group within your plot or change the heading in any way you'd like
+Groups= dogs$group
+
+#Now save the plot you have created to your working directory with: 
+ggsave("dogs_plot.png")
+
+
+#Bar plot -- this is the question for homework
+ggplot(dogs, aes(x = Group, fill= Size)) +
+  geom_bar(position = "dodge")
+
+Size= dogs$size
+Group= dogs$group
+
+ggsave("dogs_barplot.png")
+
