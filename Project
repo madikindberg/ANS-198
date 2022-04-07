@@ -1,0 +1,29 @@
+#https://www.kaggle.com/datasets/vagifa/meatconsumption
+#Is there a correlation between which countries eat what type of meat?
+
+getwd()
+setwd("/Users/madikindberg/Desktop/ANS 198")
+list.files()
+Meat = read.csv(file = "/Users/madikindberg/Desktop/ANS 198/meat_consumption_worldwide.csv", TRUE, sep = ",")
+
+?read.csv
+Meat
+rownames(Meat)
+colnames(Meat)
+summary(Meat)
+table(is.na(Meat$Value))
+
+library("ggplot2")
+
+ggplot(Meat, aes(x = Location, y = Value, color = Subject))
+  geom_point() 
+  geom_text(aes(label = Subject), hjust = "left", vjust = "top") 
+  labs(title = "World Meat Consumption", x = "Location", y = "Value")
+ggsave("Meat_Consumption_Plot.png")
+
+ggplot(Meat, aes(x = Subject, fill = Time)) +
+  geom_bar(position = "dodge")
+
+ggplot(data = Meat, aes(x = Subject, y = Time, color = Subject, group = 1)) +
+  geom_line() +
+  labs(title = "World Meat Consumption", x = "Type of Meat", y = "Year" )
