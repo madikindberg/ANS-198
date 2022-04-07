@@ -70,4 +70,4 @@ Group= dogs$group
 
 ggsave("dogs_barplot.png")
 
-![This is an image]
+
