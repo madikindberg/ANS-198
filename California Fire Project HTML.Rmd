@@ -390,3 +390,4 @@ acresmap2019B = acresmap2019 +
                       trans = "log10")
 acresmap2019B
 
+[Ca Map Acres Burned Plot.pdf](https://github.com/madikindberg/ANS-198/files/8672394/Ca.Map.Acres.Burned.Plot.pdf)
