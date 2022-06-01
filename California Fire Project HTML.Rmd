@@ -1,80 +1,255 @@
 ---
 title: "California Fire Project"
 output:
-  html_document: default
-  pdf_document: 
-    fig_caption: yes
+  pdf_document: default
+  html_document:
+    keep_md: yes
+  word_document: default
 date: '2022-05-10'
 ---
 
-```{r setup, include=FALSE}
+```{r data-import, include=TRUE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
+```{r echo = TRUE}
 ##Set your working directory and get your fire data into R
 getwd()
 setwd("/Users/madikindberg/Desktop/ANS 198")
 list.files()
+
 ca_fires2 = read.csv("Fire_Project.csv")
 
 ##Make sure your data uploaded correctly and begin to understand columns and rows
 ca_fires2
+```
 
-##Make these filters in order to subset data for each year to its own table 
-ca_fires2_2013 = filter(ca_fires2, Started == 2013)
-ca_fires2_2014 = filter(ca_fires2, Started == 2014)
-ca_fires2_2015 = filter(ca_fires2, Started == 2015)
-ca_fires2_2016 = filter(ca_fires2, Started == 2016)
-ca_fires2_2017 = filter(ca_fires2, Started == 2017)
-ca_fires2_2018 = filter(ca_fires2, Started == 2018)
-ca_fires2_2019 = filter(ca_fires2, Started == 2019)
-
-##Install these packages to make a map of California (choose no for everything when loading packages -- unless it is not working by saying "no")
-install.packages("ggplot2")
-
-install.packages("ggmap")
-
-install.packages("maps")
-
-install.packages("mapdata")
 
 library(ggplot2)
-library(ggmap)
 library(maps)
 library(mapdata)
 
-##Install these packages to begin summarizing the total amount of acres burned in a single county for each individual year
-install.packages("tidyverse")
+##Install these packages to begin summarizing the total amount of acres burned 
+#in a single county for each individual year
 
-install.packages("tidymodels")
-
-no
-
-install.packages("janitor")
-
-install.packages("glmnet")
-
-no
-
-install.packages("effects")
-
-no
-
-install.packages("olsrr")
-
-no
-
-install.packages("dplyr")
-
+library(tzdb)
 library(tidyverse)
-library(tidymodels)
 library(janitor)
 library(glmnet)
 library(effects)
 library(olsrr)
+library(ggrepel)
+library(ggtext)
+library(glue)
 library(dplyr)
 
+
+
+##Make these filters in order to subset data for each year to its own table 
+
+ca_fires2_2013 = filter(ca_fires2, Started == 2013)
+
+ca_fires2_2014 = filter(ca_fires2, Started == 2014)
+
+ca_fires2_2015 = filter(ca_fires2, Started == 2015)
+
+ca_fires2_2016 = filter(ca_fires2, Started == 2016)
+
+ca_fires2_2017 = filter(ca_fires2, Started == 2017)
+
+ca_fires2_2018 = filter(ca_fires2, Started == 2018)
+
+ca_fires2_2019 = filter(ca_fires2, Started == 2019)
+
+colnames(ca_fires2_2013)
+
+ca_fires2_2013
+
+
+
+```{r echo = FALSE}
+##Frequency of fires per year 
+#Most fires were shown to be in 2017 
+
+ggplot(ca_fires2, aes(x = factor(Started), fill= AcresBurned)) +
+  geom_bar(position = "dodge") +
+  labs(title = "Amount of Fires Per Year", x = "Year", y = "Amount of Fires") 
+
+```
+
+```{r echo = TRUE}
+##Amount of acres burned per year
+ca_all_years_summary = ca_fires2 %>%
+  group_by(Started) %>%
+  summarise(Sum = sum(AcresBurned, na.rm = TRUE))
+
+ca_all_years_summary 
+
+ggplot(ca_all_years_summary, aes(x = Started, y = Sum)) +
+  geom_point() +
+  labs(title = "Amount of Acres Burned Per Year", x = "Year", y = "Acres Burned") +
+  scale_y_continuous(labels = scales::comma) +
+  scale_x_continuous(breaks = c(2013,2014,2015,2016,2017,2018,2019))
+```
+
+
+##Plot to show all the individual fires in each year
+#The plot will also tell us the name of the largest fire in each perspective year
+#Purpose of these graphs: What is the largest fire in each year?
+
+```{r echo = TRUE}
+#2013: Rim Fire - Tuolumne
+ca_fires2_2013
+
+ca_fires2_2013_max = filter(ca_fires2_2013, Name == "Rim Fire")
+ca_fires2_2013_max
+
+ca_fires2013_name = ca_fires2_2013_max$Name
+ca_fires2013_name
+
+ggplot(ca_fires2_2013) +
+  aes(AcresBurned, Counties) +
+  geom_point(color = "black", size = 2) +
+  geom_point(data = ca_fires2[which.max(ca_fires2_2013$AcresBurned), ], 
+  color = "red", size = 2) +
+  geom_text_repel(aes(label = ca_fires2013_name), data = ca_fires2_2013_max, size = 5) +
+  scale_x_continuous(labels = scales::comma) +
+  theme(panel.grid.minor.y = element_line(size = 10))
+
+```
+
+
+
+
+```{r echo = TRUE}
+#2014: King Fire - El Dorado
+ca_fires2_2014
+
+ca_fires2_2014_max = filter(ca_fires2_2014, Name == "King Fire")
+ca_fires2_2014_max
+
+ca_fires2014_name = ca_fires2_2014_max$Name
+ca_fires2014_name
+
+ggplot(ca_fires2_2014) +
+  aes(AcresBurned, Counties) +
+  geom_point(color = "black", size = 2) +
+  geom_point(data = ca_fires2_2014[which.max(ca_fires2_2014$AcresBurned), ], 
+  color = "red", size = 2) +
+  geom_text_repel(aes(label = ca_fires2014_name), data = ca_fires2_2014_max, size = 5) +
+  scale_x_continuous(labels = scales::comma) +
+  theme(panel.grid.minor.y = element_line(size = 10))
+```
+
+
+```{r echo = TRUE}
+#2015: Rough Fire - Fresno 
+#why is this not putting out the name on the graph?
+ca_fires2_2015
+
+ca_fires2_2015_max = filter(ca_fires2_2015, Name == "Rough Fire")
+
+ca_fires2_2015_max
+
+ca_fires2_2015$Name
+
+ca_fires2015_name = ca_fires2_2015_max$Name
+ca_fires2015_name
+
+ggplot(ca_fires2_2015) +
+  aes(AcresBurned, Counties) +
+  geom_point(color = "black", size = 2) +
+  geom_point(data = ca_fires2_2015[which.max(ca_fires2_2015$AcresBurned), ], 
+  color = "red", size = 2) +
+  geom_text_repel(aes(label = ca_fires2015_name), data = ca_fires2_2015_max, size = 5) +
+  scale_x_continuous(labels = scales::comma)  +
+  theme(panel.grid.minor.y = element_line(size = 10))
+```
+
+
+```{r echo = TRUE}
+#2016 - 
+ca_fires2_2016
+
+ca_fires2_2016_max = filter(ca_fires2_2016, Name == "Soberanes Fire")
+ca_fires2_2016_max
+
+ca_fires2016_name = ca_fires2_2016_max$Name
+ca_fires2016_name
+
+ggplot(ca_fires2_2016) +
+  aes(AcresBurned, Counties) +
+  geom_point(color = "black", size = 2) +
+  geom_point(data = ca_fires2_2016[which.max(ca_fires2_2016$AcresBurned), ], 
+  color = "red", size = 2) +
+  geom_text_repel(aes(label = ca_fires2016_name), data = ca_fires2_2016_max, size = 5) +
+  scale_x_continuous(labels = scales::comma) +
+  theme(panel.grid.minor.y = element_line(size = 10))
+```
+
+
+```{r echo = TRUE}
+#2017: Thomas Fire - Santa Barbara / Ventura
+ca_fires2_2017
+
+ca_fires2_2017_max = filter(ca_fires2_2017, Name == "Thomas Fire")
+ca_fires2_2017_max
+
+ca_fires2017_name = ca_fires2_2017_max$Name
+ca_fires2017_name
+
+ggplot(ca_fires2_2017) +
+  aes(AcresBurned, Counties) +
+  geom_point(color = "black", size = 2) +
+  geom_point(data = ca_fires2_2017[which.max(ca_fires2_2017$AcresBurned), ], 
+  color = "red", size = 2) +
+  geom_text_repel(aes(label = ca_fires2017_name), data = ca_fires2_2017_max, size = 5) +
+  scale_x_continuous(labels = scales::comma) +
+  theme(panel.grid.minor.y = element_line(size = 10))
+```
+
+
+```{r echo = TRUE}
+#2018: Ranch Fire - Large enough for multiple Counties
+ca_fires2_2018_max = filter(ca_fires2_2018, Name == "Ranch Fire (Mendocino Complex)")
+ca_fires2_2018_max
+
+ca_fires2018_name = ca_fires2_2018_max$Name
+ca_fires2018_name
+
+ggplot(ca_fires2_2018) +
+  aes(AcresBurned, Counties) +
+  geom_point(color = "black", size = 2) +
+  geom_point(data = ca_fires2_2018[which.max(ca_fires2_2018$AcresBurned), ], 
+  color = "red", size = 2) +
+  geom_text_repel(aes(label = ca_fires2018_name), data = ca_fires2_2018_max, size = 5) +
+  scale_x_continuous(labels = scales::comma) +
+  theme(panel.grid.minor.y = element_line(size = 10))
+```
+
+
+```{r echo = TRUE}
+#2019
+ca_fires2_2019_max = filter(ca_fires2_2019, Name == "Kincade Fire")
+ca_fires2_2019_max
+
+ca_fires2019_name = ca_fires2_2019_max$Name
+ca_fires2019_name
+
+ggplot(ca_fires2_2019) +
+  aes(AcresBurned, Counties) +
+  geom_point(color = "black", size = 2) +
+  geom_point(data = ca_fires2_2019[which.max(ca_fires2_2019$AcresBurned), ], 
+  color = "red", size = 2) +
+  geom_text_repel(aes(label = ca_fires2019_name), data = ca_fires2_2019_max, size = 5) +
+  scale_x_continuous(labels = scales::comma) +
+  theme(panel.grid.minor.y = element_line(size = 10))
+```
+
+
+
 ##Start summarizing the total amount of acres burned in a single county for all counties in each individual year
+```{r echo = TRUE}
 #Summary for 2013
 ca_2013 = ca_fires2_2013 %>%
   group_by(Counties) %>%
@@ -123,31 +298,39 @@ ca_2019 = ca_fires2_2019 %>%
   summarise(Sum = sum(AcresBurned))
   
 ca_2019
+```
 
 
 ##Start outlining maps and learning how to use the map_data
+```{r echo = TRUE}
 #For starters, this will show us the map of California
+
 usa = map_data("usa")
 states= map_data("state")
 dim(states)
 
 ca_df= subset(states, region == "california")
 
-ca_base= ggplot(data=ca_df, mapping= aes(x=long, y=lat,       group=group)) +
+ca_base= ggplot(data=ca_df, mapping= aes(x=long, y=lat, group=group)) +
   coord_fixed(1.3) +
   geom_polygon(color = "black", fill = "gray")
 
-ca_base + theme_nothing()
+```
 
+
+```{r echo = TRUE}
 #Now explore showing the counties of California on the map
 counties = map_data("county")
 
 ca_county = subset(counties, region== "california")
 
-ca_base + theme_nothing() +
+ca_base +
   geom_polygon(data = ca_county, fill = NA, color = "white") +
   geom_polygon(color = "black", fill=NA)
+```
 
+
+```{r echo = TRUE}
 ##Let's focus on plotting our data on the California counties map now
 library(stringr)
 library(dplyr)
@@ -157,10 +340,9 @@ fire_per_mile = ca_fires2$AcresBurned
 
 fire_per_mile
 
-#Refresh your memory of the table column names
-colnames(ca_fires2)
-
-##Tolower will allow us to lowercase our "Counties" names in our data in order to align it will the California map data that is also lowercase which allows us to join and plot our data on the map
+##Tolower will allow us to lowercase our "Counties" names in our data in order 
+#to align it will the California map data that is also lowercase which allows 
+#us to join and plot our data on the map
 #Use this for each year so that all our plots will join easily with the map
 ca_fires2$Counties2 = tolower(ca_fires2$Counties)
 ca_fires2$Counties2
@@ -172,7 +354,7 @@ ca_2014$Counties2014 = tolower(ca_2014$Counties)
 ca_2014$Counties2014
 
 ca_2015$Counties2015 = tolower(ca_2015$Counties)
-ca_2015$Counties2015
+ca_2015$Countixes2015
 
 ca_2016$Counties2016 = tolower(ca_2016$Counties)
 ca_2016$Counties2016
@@ -203,18 +385,23 @@ elbow_room1 = ca_base +
   theme_bw() +
   ditch_the_axes
 
-elbow_room1 + scale_fill_gradient(trans = "log10")
+```
 
-##Put description here!! What is the purpose of ca_countymap 1 and 2?
-ca_countymap = ca_base + theme_nothing() +
+
+```{r echo = TRUE}
+##Build the base for the maps
+ca_countymap = ca_base +
   geom_polygon(data = ca_county, fill = NA, color = "white") +
   geom_polygon(color = "black", fill=NA)
 ca_countymap
+```
 
+
+```{r echo = TRUE}
 #Now we can finally join our data with the California map data 
 #Essentially this will overlap our columns for counties in each set of data
 #For the California map data, the counties are found under "subregion"
-#For our fire data, the counties are found under "Counities'Year'"
+#For our fire data, the counties are found under "CountiesYear"
 ca_countymap2 = ca_county %>%
   left_join(ca_fires2, by = c("subregion" = "Counties2"))
 ca_countymap2
@@ -246,7 +433,10 @@ ca_countymap2018
 ca_countymap2019 = ca_county %>%
   left_join(ca_2019, by = c("subregion" = "Counties2019"))
 ca_countymap2019
+```
 
+
+```{r echo = TRUE}
 #Making the intial graph for all years
 acresmap = ca_base +
   geom_polygon(data = ca_countymap2,  aes(fill = AcresBurned),
@@ -263,7 +453,10 @@ acresmap2 = acresmap +
                       breaks = c(10, 100, 1000, 10000, 250000),
                       trans = "log10")
 acresmap2
+```
 
+
+```{r echo = TRUE}
 #Making the initial graph for 2013
 acresmap2013 = ca_base +
   geom_polygon(data = ca_countymap2013,  aes(fill = Sum),
@@ -280,8 +473,10 @@ acresmap2013B = acresmap2013 +
                       breaks = c(10, 100, 1000, 10000, 250000),
                       trans = "log10")
 acresmap2013B
+```
 
 
+```{r echo = TRUE}
 #Making the initial graph for 2014
 acresmap2014 = ca_base +
   geom_polygon(data = ca_countymap2014,  aes(fill = Sum),
@@ -298,8 +493,10 @@ acresmap2014B = acresmap2014 +
                       breaks = c(10, 100, 1000, 10000, 250000),
                       trans = "log10")
 acresmap2014B
+```
 
 
+```{r echo = TRUE}
 #Making the initial graph for 2015
 acresmap2015 = ca_base +
   geom_polygon(data = ca_countymap2015,  aes(fill = Sum),
@@ -317,8 +514,10 @@ acresmap2015B = acresmap2015 +
                       trans = "log10")
                       
 acresmap2015B
+```
 
 
+```{r echo = TRUE}
 #Making the initial graph for 2016
 acresmap2016 = ca_base +
   geom_polygon(data = ca_countymap2016,  aes(fill = Sum),
@@ -335,8 +534,10 @@ acresmap2016B = acresmap2016 +
                       breaks = c(10, 100, 1000, 10000, 250000),
                       trans = "log10")
 acresmap2016B
+```
 
 
+```{r echo = TRUE}
 #Making the initial graph for 2017
 acresmap2017 = ca_base +
   geom_polygon(data = ca_countymap2017,  aes(fill = Sum),
@@ -353,8 +554,10 @@ acresmap2017B = acresmap2017 +
                       breaks = c(10, 100, 1000, 10000, 250000),
                       trans = "log10")
 acresmap2017B
+```
 
 
+```{r echo = TRUE}
 #Making the initial graph for 2018
 acresmap2018 = ca_base +
   geom_polygon(data = ca_countymap2018,  aes(fill = Sum),
@@ -371,8 +574,10 @@ acresmap2018B = acresmap2018 +
                       breaks = c(10, 100, 1000, 10000, 250000),
                       trans = "log10")
 acresmap2018B
+```
 
 
+```{r echo = TRUE}
 #Making the initial graph for 2019
 acresmap2019 = ca_base +
   geom_polygon(data = ca_countymap2019,  aes(fill = Sum),
@@ -389,3 +594,140 @@ acresmap2019B = acresmap2019 +
                       breaks = c(10, 100, 1000, 10000, 250000),
                       trans = "log10")
 acresmap2019B
+```
+
+```{r echo = TRUE}
+##Now move onto analyzing relationship between California fires and rainfall
+##Start by loading all packages needed
+library(ggplot2)
+
+library(maps)
+library(mapdata)
+library(tidyverse)
+library(janitor)
+library(glmnet)
+library(effects)
+library(olsrr)
+library(ggrepel)
+library(ggtext)
+library(glue)
+library(dplyr)
+```
+
+
+```{r echo = TRUE}
+##Load all the rainfall datasets we will need to use
+getwd()
+setwd("/Users/madikindberg/Desktop/ANS 198")
+list.files()
+
+rainfall_2013 = read.csv("Rainfall 2013.csv")
+
+rainfall_2014 = read.csv("Rainfall 2014.csv")
+
+rainfall_2015 = read.csv("Rainfall 2015.csv")
+
+rainfall_2016 = read.csv("Rainfall 2016.csv")
+
+rainfall_2017 = read.csv("Rainfall 2017.csv")
+
+rainfall_2018 = read.csv("Rainfall 2018.csv")
+
+rainfall_2019 = read.csv("Rainfall 2019.csv")
+
+
+
+
+rainfall_2013_summary = rainfall_2013 %>%
+  group_by(County) %>%
+  summarise(Sum = sum(Year.Total))
+
+rainfall_2013_summary
+
+sum(rainfall_2013$Year.Total)
+sum(rainfall_2014$Year.Total)
+sum(rainfall_2015$Year.Total)
+sum(rainfall_2016$Year.Total)
+sum(rainfall_2017$Year.Total)
+sum(rainfall_2018$Year.Total)
+sum(rainfall_2019$Year.Total)
+```
+
+
+```{r echo = TRUE}
+##Load the fire data
+getwd()
+setwd("/Users/madikindberg/Desktop/ANS 198")
+list.files()
+
+ca_fires2 = read.csv("Fire_Project.csv")
+
+ca_fires2_2013 = filter(ca_fires2, Started == 2013)
+ca_fires2_2014 = filter(ca_fires2, Started == 2014)
+ca_fires2_2015 = filter(ca_fires2, Started == 2015)
+ca_fires2_2016 = filter(ca_fires2, Started == 2016)
+ca_fires2_2017 = filter(ca_fires2, Started == 2017)
+ca_fires2_2018 = filter(ca_fires2, Started == 2018)
+ca_fires2_2019 = filter(ca_fires2, Started == 2019)
+
+sum(ca_fires2_2013$AcresBurned)
+sum(ca_fires2_2014$AcresBurned)
+sum(ca_fires2_2015$AcresBurned)
+sum(ca_fires2_2016$AcresBurned)
+sum(ca_fires2_2017$AcresBurned)
+sum(ca_fires2_2018$AcresBurned)
+sum(ca_fires2_2019$AcresBurned, na.rm = TRUE)
+
+
+nrow(ca_fires2_2013)
+nrow(ca_fires2_2014)
+nrow(ca_fires2_2015)
+nrow(ca_fires2_2016)
+nrow(ca_fires2_2017)
+nrow(ca_fires2_2018)
+nrow(ca_fires2_2019)
+```
+
+#Make a dataset with summaries for fire and rainfall and use in next portion
+
+```{r echo = TRUE}
+##Read the data with rainfall and acres burned
+ca_total_data = read.csv("Rainfall from 2013-2019.csv")
+ca_total_data
+
+Acres_Burned = ca_total_data$Acres.Burned
+Acres_Burned 
+
+Total_Rainfall = ca_total_data$Total.Rainfall..inches.
+Total_Rainfall
+
+All_Years = ca_total_data$Year
+All_Years
+```
+
+
+```{r echo = TRUE}
+##Make a graph with two separate axis
+par(mar = c(5,4,4,4)+0.3)
+
+plot(All_Years, Acres_Burned, pch = 16, col = 2, xlab = "Year", 
+  ylab = "Acres Burned") 
+
+par(new = TRUE)
+
+plot(All_Years, Total_Rainfall, pch = 17, col = 3,
+     axes = FALSE, xlab = "", ylab = "") 
+
+axis(side = 4, at = pretty(range(Total_Rainfall)))
+
+mtext("Total Rainfall (inches)", side = 4, line = 3)
+
+mtext("Trend in Acres Burned and Rainfall from 2013 to 2019", side = 3, 
+  line = 1)
+
+legend("topleft", inset = c(0, 0), legend = c("Acres Burned", "Total Rainfall"),
+       text.col = c("red","green"), pch = c(1,4), col = c("red","green"), 
+       title = "Key")
+```
+
+
